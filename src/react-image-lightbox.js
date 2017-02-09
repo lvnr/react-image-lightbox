@@ -65,7 +65,7 @@ class ReactImageLightbox extends Component {
             // Zoom settings
             //-----------------------------
             // Zoom level of image
-            zoomLevel: props.initialZoomLevel || MIN_ZOOM_LEVEL,
+            zoomLevel: MIN_ZOOM_LEVEL,
 
             //-----------------------------
             // Image position settings
@@ -1119,6 +1119,9 @@ class ReactImageLightbox extends Component {
 
             // Force rerender with the new image
             this.forceUpdate();
+
+            // Zoom to initial level
+            this.changeZoom(this.props.initialZoomLevel || MIN_ZOOM_LEVEL);
         };
 
         // Load the images
