@@ -65,7 +65,7 @@ class ReactImageLightbox extends Component {
             // Zoom settings
             //-----------------------------
             // Zoom level of image
-            zoomLevel: MIN_ZOOM_LEVEL,
+            zoomLevel: props.initialZoomLevel || MIN_ZOOM_LEVEL,
 
             //-----------------------------
             // Image position settings
@@ -1673,6 +1673,9 @@ ReactImageLightbox.propTypes = {
 
     // Set to false to disable zoom functionality and hide zoom buttons
     enableZoom: PropTypes.bool,
+
+    // Initial zoom level
+    initialZoomLevel: PropTypes.number,
 };
 
 ReactImageLightbox.defaultProps = {
