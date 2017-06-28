@@ -1,6 +1,6 @@
 !function(root, factory) {
-    "object" == typeof exports && "object" == typeof module ? module.exports = factory(require("react"), require("react-modal")) : "function" == typeof define && define.amd ? define([ "react", "react-modal" ], factory) : "object" == typeof exports ? exports.ReactImageLightbox = factory(require("react"), require("react-modal")) : root.ReactImageLightbox = factory(root.react, root["react-modal"]);
-}(this, function(__WEBPACK_EXTERNAL_MODULE_8__, __WEBPACK_EXTERNAL_MODULE_9__) {
+    "object" == typeof exports && "object" == typeof module ? module.exports = factory(require("babel-runtime/core-js/json/stringify"), require("babel-runtime/helpers/slicedToArray"), require("prop-types"), require("react"), require("react-modal")) : "function" == typeof define && define.amd ? define([ "babel-runtime/core-js/json/stringify", "babel-runtime/helpers/slicedToArray", "prop-types", "react", "react-modal" ], factory) : "object" == typeof exports ? exports.ReactImageLightbox = factory(require("babel-runtime/core-js/json/stringify"), require("babel-runtime/helpers/slicedToArray"), require("prop-types"), require("react"), require("react-modal")) : root.ReactImageLightbox = factory(root["babel-runtime/core-js/json/stringify"], root["babel-runtime/helpers/slicedToArray"], root["prop-types"], root.react, root["react-modal"]);
+}(this, function(__WEBPACK_EXTERNAL_MODULE_8__, __WEBPACK_EXTERNAL_MODULE_9__, __WEBPACK_EXTERNAL_MODULE_10__, __WEBPACK_EXTERNAL_MODULE_11__, __WEBPACK_EXTERNAL_MODULE_12__) {
     /******/
     return function(modules) {
         /******/
@@ -125,7 +125,11 @@
         Object.defineProperty(exports, "__esModule", {
             value: !0
         });
-        var _slicedToArray = function() {
+        var _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(obj) {
+            return typeof obj;
+        } : function(obj) {
+            return obj && "function" == typeof Symbol && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+        }, _slicedToArray = function() {
             function sliceIterator(arr, i) {
                 var _arr = [], _n = !0, _d = !1, _e = void 0;
                 try {
@@ -165,7 +169,7 @@
                 for (var key in source) Object.prototype.hasOwnProperty.call(source, key) && (target[key] = source[key]);
             }
             return target;
-        }, _react = __webpack_require__(8), _react2 = _interopRequireDefault(_react), _reactModal = __webpack_require__(9), _reactModal2 = _interopRequireDefault(_reactModal), _util = __webpack_require__(3), _constant = __webpack_require__(1), _style = __webpack_require__(7), _style2 = _interopRequireDefault(_style), styles = _style2.default, _ieVersion = (0, 
+        }, _react = __webpack_require__(11), _react2 = _interopRequireDefault(_react), _propTypes = __webpack_require__(10), _propTypes2 = _interopRequireDefault(_propTypes), _reactModal = __webpack_require__(12), _reactModal2 = _interopRequireDefault(_reactModal), _util = __webpack_require__(3), _constant = __webpack_require__(1), _style = __webpack_require__(6), _style2 = _interopRequireDefault(_style), styles = _style2.default, _ieVersion = (0, 
         _util.getIEVersion)();
         _ieVersion < 10 && (styles = _extends({}, styles, {
             toolbarSide: styles.toolbarSide + " " + styles.toolbarSideNoFlex,
@@ -190,6 +194,7 @@
                     //-----------------------------
                     // Zoom level of image
                     zoomLevel: _constant.MIN_ZOOM_LEVEL,
+                    minZoomLevel: 0,
                     //-----------------------------
                     // Image position settings
                     //-----------------------------
@@ -238,7 +243,7 @@
             }, {
                 key: "componentDidMount",
                 value: function() {
-                    this.mounted = !0, this.attachListeners(), this.loadAllImages();
+                    this.mounted = !0, ReactImageLightbox.loadStyles(), this.attachListeners(), this.loadAllImages();
                 }
             }, {
                 key: "shouldComponentUpdate",
@@ -391,15 +396,9 @@
             }, {
                 key: "getFitSizes",
                 value: function(width, height, stretch) {
-                    var boxSize = this.getLightboxRect(), maxHeight = boxSize.height - 2 * this.props.imagePadding, maxWidth = boxSize.width - 2 * this.props.imagePadding;
-                    stretch || (maxHeight = Math.min(maxHeight, height), maxWidth = Math.min(maxWidth, width));
-                    var maxRatio = maxWidth / maxHeight, srcRatio = width / height;
-                    return maxRatio > srcRatio ? {
-                        width: width * maxHeight / height,
-                        height: maxHeight
-                    } : {
-                        width: maxWidth,
-                        height: height * maxWidth / width
+                    return {
+                        width: width,
+                        height: height
                     };
                 }
             }, {
@@ -451,8 +450,8 @@
             }, {
                 key: "getZoomMultiplier",
                 value: function() {
-                    var zoomLevel = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : this.state.zoomLevel;
-                    return Math.pow(_constant.ZOOM_RATIO, zoomLevel);
+                    var zoomLevel = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : this.state.zoomLevel, minZoomLevel = this.state.minZoomLevel;
+                    return Math.pow(_constant.ZOOM_RATIO, zoomLevel) - (1 - minZoomLevel);
                 }
             }, {
                 key: "getLightboxRect",
@@ -869,11 +868,17 @@
                     var _this11 = this, props = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : this.props, generateLoadDoneCallback = function(srcType, imageSrc) {
                         return function(err) {
                             // Give up showing image on error
-                            err || // Don't rerender if the src is not the same as when the load started
+                            if (!err && _this11.props[srcType] === imageSrc && _this11.mounted) // Don't rerender if the src is not the same as when the load started
                             // or if the component has unmounted
-                            _this11.props[srcType] === imageSrc && _this11.mounted && (// Force rerender with the new image
-                            _this11.forceUpdate(), // Zoom to initial level
-                            _this11.changeZoom(_this11.props.initialZoomLevel || _constant.MIN_ZOOM_LEVEL));
+                            {
+                                // Force rerender with the new image
+                                _this11.forceUpdate();
+                                // Zoom to initial level
+                                var bestImageInfo = _this11.getBestImageForType("mainSrc"), boxRect = _this11.getLightboxRect(), widthRatio = boxRect.width / bestImageInfo.width, heightRatio = boxRect.height / bestImageInfo.height, zoomRatio = Math.min(widthRatio, heightRatio);
+                                _this11.setState({
+                                    minZoomLevel: zoomRatio
+                                });
+                            }
                         };
                     };
                     // Load the images
@@ -927,7 +932,8 @@
             }, {
                 key: "render",
                 value: function() {
-                    var _this14 = this, _props = this.props, animationDisabled = _props.animationDisabled, animationDuration = _props.animationDuration, clickOutsideToClose = _props.clickOutsideToClose, discourageDownloads = _props.discourageDownloads, enableZoom = _props.enableZoom, imageTitle = _props.imageTitle, nextSrc = _props.nextSrc, prevSrc = _props.prevSrc, toolbarButtons = _props.toolbarButtons, reactModalStyle = _props.reactModalStyle, _state = this.state, zoomLevel = _state.zoomLevel, offsetX = _state.offsetX, offsetY = _state.offsetY, isClosing = _state.isClosing, boxSize = this.getLightboxRect(), transitionStyle = {};
+                    var _this14 = this, _props = this.props, animationDisabled = _props.animationDisabled, animationDuration = _props.animationDuration, clickOutsideToClose = _props.clickOutsideToClose, discourageDownloads = _props.discourageDownloads, enableZoom = _props.enableZoom, imageTitle = _props.imageTitle, nextSrc = _props.nextSrc, prevSrc = _props.prevSrc, toolbarButtons = _props.toolbarButtons, reactModalStyle = _props.reactModalStyle, _onAfterOpen = _props.onAfterOpen, _state = this.state, zoomLevel = _state.zoomLevel, offsetX = (_state.minZoomLevel, 
+                    _state.offsetX), offsetY = _state.offsetY, isClosing = _state.isClosing, boxSize = this.getLightboxRect(), transitionStyle = {};
                     // Transition settings for sliding animations
                     !animationDisabled && this.isAnimating() && (transitionStyle = _extends({}, transitionStyle, {
                         transition: "transform " + animationDuration + "ms"
@@ -940,11 +946,9 @@
                     });
                     // Images to be displayed
                     var images = [], addImage = function(srcType, imageClass) {
-                        var baseStyle = arguments.length > 2 && void 0 !== arguments[2] ? arguments[2] : {};
+                        var transforms = arguments.length > 2 && void 0 !== arguments[2] ? arguments[2] : {};
                         // Ignore types that have no source defined for their full size image
                         if (_this14.props[srcType]) {
-                            var imageStyle = _extends({}, baseStyle, transitionStyle);
-                            zoomLevel > _constant.MIN_ZOOM_LEVEL && (imageStyle.cursor = "move");
                             var bestImageInfo = _this14.getBestImageForType(srcType);
                             if (null === bestImageInfo) {
                                 var loadingIcon = void 0;
@@ -978,15 +982,19 @@
                                 }), _react2.default.createElement("div", {
                                     className: "ril-loading-circle-point " + styles.loadingCirclePoint
                                 })), void images.push(_react2.default.createElement("div", {
-                                    className: imageClass + " " + styles.image + " not-loaded ril-not-loaded",
+                                    className: imageClass + " " + styles.image + " ril-not-loaded",
                                     style: imageStyle,
                                     key: _this14.props[srcType] + keyEndings[srcType]
                                 }, _react2.default.createElement("div", {
                                     className: styles.loadingContainer
                                 }, loadingIcon)));
                             }
-                            imageStyle.width = bestImageInfo.width, imageStyle.height = bestImageInfo.height;
-                            var imageSrc = bestImageInfo.src;
+                            var boxRect = _this14.getLightboxRect(), widthRatio = boxRect.width / bestImageInfo.width, heightRatio = boxRect.height / bestImageInfo.height, zoomRatio = Math.min(widthRatio, heightRatio), zoom = transforms.zoom ? Math.max(zoomRatio, transforms.zoom) : zoomRatio, portrait = bestImageInfo.height > bestImageInfo.width, left = portrait ? 0 : -1 * (bestImageInfo.width - boxRect.width) / 2, top = portrait ? -1 * (bestImageInfo.height - boxRect.height) / 2 : 0, transform = ReactImageLightbox.getTransform(_extends({}, transforms, {
+                                zoom: zoom
+                            })), imageStyle = _extends({}, transitionStyle, transform, {
+                                left: left,
+                                top: top
+                            }), imageSrc = bestImageInfo.src;
                             discourageDownloads ? (imageStyle.backgroundImage = "url('" + imageSrc + "')", images.push(_react2.default.createElement("div", {
                                 className: imageClass + " " + styles.image + " " + styles.imageDiscourager,
                                 onDoubleClick: _this14.handleImageDoubleClick,
@@ -994,7 +1002,7 @@
                                 style: imageStyle,
                                 key: imageSrc + keyEndings[srcType]
                             }, _react2.default.createElement("div", {
-                                className: "download-blocker ril-download-blocker " + styles.downloadBlocker
+                                className: "ril-download-blocker " + styles.downloadBlocker
                             })))) : images.push(_react2.default.createElement("img", {
                                 className: imageClass + " " + styles.image,
                                 onDoubleClick: _this14.handleImageDoubleClick,
@@ -1011,17 +1019,17 @@
                         }
                     }, zoomMultiplier = this.getZoomMultiplier();
                     // Next Image (displayed on the right)
-                    addImage("nextSrc", "image-next ril-image-next " + styles.imageNext, ReactImageLightbox.getTransform({
+                    addImage("nextSrc", "ril-image-next " + styles.imageNext, {
                         x: boxSize.width
-                    })), // Main Image
-                    addImage("mainSrc", "image-current ril-image-current", ReactImageLightbox.getTransform({
+                    }), // Main Image
+                    addImage("mainSrc", "ril-image-current", {
                         x: -1 * offsetX,
                         y: -1 * offsetY,
                         zoom: zoomMultiplier
-                    })), // Previous Image (displayed on the left)
-                    addImage("prevSrc", "image-prev ril-image-prev " + styles.imagePrev, ReactImageLightbox.getTransform({
+                    }), // Previous Image (displayed on the left)
+                    addImage("prevSrc", "ril-image-prev " + styles.imagePrev, {
                         x: -1 * boxSize.width
-                    }));
+                    });
                     var noop = function() {}, zoomInButtonClasses = [ styles.toolbarItemChild, styles.builtinButton, styles.zoomInButton ], zoomOutButtonClasses = [ styles.toolbarItemChild, styles.builtinButton, styles.zoomOutButton ], zoomInButtonHandler = this.handleZoomInButtonClick, zoomOutButtonHandler = this.handleZoomOutButtonClick;
                     // Disable zooming in when zoomed all the way in
                     zoomLevel === _constant.MAX_ZOOM_LEVEL && (zoomInButtonClasses.push(styles.builtinButtonDisabled), 
@@ -1047,26 +1055,19 @@
                             bottom: 0
                         }, reactModalStyle.content)
                     };
-                    // DEPRECATION NOTICE
-                    // All unprefixed classes (listed below) will be removed in v4.0.0.
-                    // Use their `ril-` prefixed alternatives instead.
-                    //
-                    // DEPRECATED: close, closing, download-blocker, image-current,
-                    //             image-next, image-prev, inner, next-button, not-loaded,
-                    //             outer, prev-button, toolbar, toolbar-left, toolbar-right,
-                    //             zoom-in, zoom-out
                     return _react2.default.createElement(_reactModal2.default, {
                         isOpen: !0,
                         onRequestClose: clickOutsideToClose ? this.requestClose : noop,
                         onAfterOpen: function() {
-                            return _this14.outerEl && _this14.outerEl.focus();
+                            // Focus on the div with key handlers
+                            _this14.outerEl && _this14.outerEl.focus(), _onAfterOpen();
                         },
                         style: modalStyle,
                         contentLabel: (0, _util.translate)("Lightbox")
                     }, _react2.default.createElement("div", {
                         // eslint-disable-line jsx-a11y/no-static-element-interactions
                         // Floating modal with closing animations
-                        className: "outer ril-outer " + styles.outer + " " + styles.outerAnimating + (isClosing ? " closing ril-closing " + styles.outerClosing : ""),
+                        className: "ril-outer " + styles.outer + " " + styles.outerAnimating + (isClosing ? " ril-closing " + styles.outerClosing : ""),
                         style: {
                             transition: "opacity " + animationDuration + "ms",
                             animationDuration: animationDuration + "ms",
@@ -1086,31 +1087,31 @@
                     }, _react2.default.createElement("div", {
                         // eslint-disable-line jsx-a11y/no-static-element-interactions
                         // Image holder
-                        className: "inner ril-inner " + styles.inner,
+                        className: "ril-inner " + styles.inner,
                         onClick: clickOutsideToClose ? this.closeIfClickInner : noop
                     }, images), prevSrc && _react2.default.createElement("button", {
                         // Move to previous image button
                         type: "button",
-                        className: "prev-button ril-prev-button " + styles.navButtons + " " + styles.navButtonPrev,
+                        className: "ril-prev-button " + styles.navButtons + " " + styles.navButtonPrev,
                         key: "prev",
                         onClick: this.isAnimating() ? noop : this.requestMovePrev
                     }), nextSrc && _react2.default.createElement("button", {
                         // Move to next image button
                         type: "button",
-                        className: "next-button ril-next-button " + styles.navButtons + " " + styles.navButtonNext,
+                        className: "ril-next-button " + styles.navButtons + " " + styles.navButtonNext,
                         key: "next",
                         onClick: this.isAnimating() ? noop : this.requestMoveNext
                     }), _react2.default.createElement("div", {
                         // Lightbox toolbar
-                        className: "toolbar ril-toolbar " + styles.toolbar
+                        className: "ril-toolbar " + styles.toolbar
                     }, _react2.default.createElement("ul", {
-                        className: "toolbar-left ril-toolbar-left " + styles.toolbarSide + " " + styles.toolbarLeftSide
+                        className: "ril-toolbar-left " + styles.toolbarSide + " " + styles.toolbarLeftSide
                     }, _react2.default.createElement("li", {
                         className: "ril-toolbar__item " + styles.toolbarItem
                     }, _react2.default.createElement("span", {
                         className: "ril-toolbar__item__child " + styles.toolbarItemChild
                     }, imageTitle))), _react2.default.createElement("ul", {
-                        className: [ "toolbar-right", "ril-toolbar-right", styles.toolbarSide, styles.toolbarRightSide ].join(" ")
+                        className: [ "ril-toolbar-right", styles.toolbarSide, styles.toolbarRightSide ].join(" ")
                     }, toolbarButtons ? toolbarButtons.map(function(button, i) {
                         return _react2.default.createElement("li", {
                             key: i,
@@ -1122,7 +1123,7 @@
                         // Lightbox zoom in button
                         type: "button",
                         key: "zoom-in",
-                        className: "zoom-in ril-zoom-in " + zoomInButtonClasses.join(" "),
+                        className: "ril-zoom-in " + zoomInButtonClasses.join(" "),
                         onClick: zoomInButtonHandler
                     })), enableZoom && _react2.default.createElement("li", {
                         className: "ril-toolbar__item " + styles.toolbarItem
@@ -1130,7 +1131,7 @@
                         // Lightbox zoom out button
                         type: "button",
                         key: "zoom-out",
-                        className: "zoom-out ril-zoom-out " + zoomOutButtonClasses.join(" "),
+                        className: "ril-zoom-out " + zoomOutButtonClasses.join(" "),
                         onClick: zoomOutButtonHandler
                     })), _react2.default.createElement("li", {
                         className: "ril-toolbar__item " + styles.toolbarItem
@@ -1138,7 +1139,7 @@
                         // Lightbox close button
                         type: "button",
                         key: "close",
-                        className: "close ril-close ril-toolbar__item__child" + (" " + styles.toolbarItemChild + " " + styles.builtinButton + " " + styles.closeButton),
+                        className: "ril-close ril-toolbar__item__child" + (" " + styles.toolbarItemChild + " " + styles.builtinButton + " " + styles.closeButton),
                         onClick: this.isAnimating() ? noop : this.requestClose
                     })))), this.props.imageCaption && _react2.default.createElement("div", {
                         // Image caption
@@ -1197,6 +1198,12 @@
                     null !== zoom && transforms.push(isOldIE ? "scale(" + zoom + ")" : "scale3d(" + zoom + "," + zoom + ",1)"), 
                     _defineProperty({}, isOldIE ? "msTransform" : "transform", 0 === transforms.length ? "none" : transforms.join(" "));
                 }
+            }, {
+                key: "loadStyles",
+                value: function() {
+                    // Insert component styles
+                    "object" === ("undefined" == typeof window ? "undefined" : _typeof(window)) && styles._insertCss();
+                }
             } ]), ReactImageLightbox;
         }(_react.Component);
         ReactImageLightbox.propTypes = {
@@ -1204,95 +1211,98 @@
             // Image sources
             //-----------------------------
             // Main display image url
-            mainSrc: _react.PropTypes.string.isRequired,
+            mainSrc: _propTypes2.default.string.isRequired,
             // eslint-disable-line react/no-unused-prop-types
             // Previous display image url (displayed to the left)
             // If left undefined, movePrev actions will not be performed, and the button not displayed
-            prevSrc: _react.PropTypes.string,
+            prevSrc: _propTypes2.default.string,
             // Next display image url (displayed to the right)
             // If left undefined, moveNext actions will not be performed, and the button not displayed
-            nextSrc: _react.PropTypes.string,
+            nextSrc: _propTypes2.default.string,
             //-----------------------------
             // Image thumbnail sources
             //-----------------------------
             // Thumbnail image url corresponding to props.mainSrc
-            mainSrcThumbnail: _react.PropTypes.string,
+            mainSrcThumbnail: _propTypes2.default.string,
             // eslint-disable-line react/no-unused-prop-types
             // Thumbnail image url corresponding to props.prevSrc
-            prevSrcThumbnail: _react.PropTypes.string,
+            prevSrcThumbnail: _propTypes2.default.string,
             // eslint-disable-line react/no-unused-prop-types
             // Thumbnail image url corresponding to props.nextSrc
-            nextSrcThumbnail: _react.PropTypes.string,
+            nextSrcThumbnail: _propTypes2.default.string,
             // eslint-disable-line react/no-unused-prop-types
             //-----------------------------
             // Event Handlers
             //-----------------------------
             // Close window event
             // Should change the parent state such that the lightbox is not rendered
-            onCloseRequest: _react.PropTypes.func.isRequired,
+            onCloseRequest: _propTypes2.default.func.isRequired,
             // Move to previous image event
             // Should change the parent state such that props.prevSrc becomes props.mainSrc,
             //  props.mainSrc becomes props.nextSrc, etc.
-            onMovePrevRequest: _react.PropTypes.func,
+            onMovePrevRequest: _propTypes2.default.func,
             // Move to next image event
             // Should change the parent state such that props.nextSrc becomes props.mainSrc,
             //  props.mainSrc becomes props.prevSrc, etc.
-            onMoveNextRequest: _react.PropTypes.func,
+            onMoveNextRequest: _propTypes2.default.func,
             // Called when an image fails to load
             // (imageSrc: string, srcType: string, errorEvent: object): void
-            onImageLoadError: _react.PropTypes.func,
+            onImageLoadError: _propTypes2.default.func,
+            // Open window event
+            onAfterOpen: _propTypes2.default.func,
             //-----------------------------
             // Download discouragement settings
             //-----------------------------
             // Enable download discouragement (prevents [right-click -> Save Image As...])
-            discourageDownloads: _react.PropTypes.bool,
+            discourageDownloads: _propTypes2.default.bool,
             //-----------------------------
             // Animation settings
             //-----------------------------
             // Disable all animation
-            animationDisabled: _react.PropTypes.bool,
+            animationDisabled: _propTypes2.default.bool,
             // Disable animation on actions performed with keyboard shortcuts
-            animationOnKeyInput: _react.PropTypes.bool,
+            animationOnKeyInput: _propTypes2.default.bool,
             // Animation duration (ms)
-            animationDuration: _react.PropTypes.number,
+            animationDuration: _propTypes2.default.number,
             //-----------------------------
             // Keyboard shortcut settings
             //-----------------------------
             // Required interval of time (ms) between key actions
             // (prevents excessively fast navigation of images)
-            keyRepeatLimit: _react.PropTypes.number,
+            keyRepeatLimit: _propTypes2.default.number,
             // Amount of time (ms) restored after each keyup
             // (makes rapid key presses slightly faster than holding down the key to navigate images)
-            keyRepeatKeyupBonus: _react.PropTypes.number,
+            keyRepeatKeyupBonus: _propTypes2.default.number,
             //-----------------------------
             // Image info
             //-----------------------------
             // Image title
-            imageTitle: _react.PropTypes.node,
+            imageTitle: _propTypes2.default.node,
             // Image caption
-            imageCaption: _react.PropTypes.node,
+            imageCaption: _propTypes2.default.node,
             //-----------------------------
             // Lightbox style
             //-----------------------------
             // Set z-index style, etc., for the parent react-modal (format: https://github.com/reactjs/react-modal#styles )
-            reactModalStyle: _react.PropTypes.object,
+            reactModalStyle: _propTypes2.default.object,
             // Padding (px) between the edge of the window and the lightbox
-            imagePadding: _react.PropTypes.number,
+            imagePadding: _propTypes2.default.number,
             //-----------------------------
             // Other
             //-----------------------------
             // Array of custom toolbar buttons
-            toolbarButtons: _react.PropTypes.arrayOf(_react.PropTypes.node),
+            toolbarButtons: _propTypes2.default.arrayOf(_propTypes2.default.node),
             // When true, clicks outside of the image close the lightbox
-            clickOutsideToClose: _react.PropTypes.bool,
+            clickOutsideToClose: _propTypes2.default.bool,
             // Set to false to disable zoom functionality and hide zoom buttons
-            enableZoom: _react.PropTypes.bool,
+            enableZoom: _propTypes2.default.bool,
             // Initial zoom level
-            initialZoomLevel: _react.PropTypes.number
+            initialZoomLevel: _propTypes2.default.number
         }, ReactImageLightbox.defaultProps = {
             onMovePrevRequest: function() {},
             onMoveNextRequest: function() {},
             onImageLoadError: function() {},
+            onAfterOpen: function() {},
             discourageDownloads: !1,
             animationDisabled: !1,
             animationOnKeyInput: !1,
@@ -1354,7 +1364,7 @@
     function(module, exports, __webpack_require__) {
         exports = module.exports = __webpack_require__(5)(), // imports
         // module
-        exports.push([ module.id, '@-webkit-keyframes closeWindow___2Hlon{0%{opacity:1}to{opacity:0}}@keyframes closeWindow___2Hlon{0%{opacity:1}to{opacity:0}}.outer___2lDXy{background-color:rgba(0,0,0,.85);top:0;left:0;right:0;bottom:0;z-index:1000;width:100%;height:100%;-ms-content-zooming:none;-ms-user-select:none;-ms-touch-select:none;-ms-touch-action:none;touch-action:none}.outerClosing___1EQGK{opacity:0}.image___2FLq2,.inner___1rfRQ{position:absolute;top:0;left:0;right:0;bottom:0}.image___2FLq2{margin:auto;max-width:100%;max-height:100%;-ms-content-zooming:none;-ms-user-select:none;-ms-touch-select:none;-ms-touch-action:none;touch-action:none}.imageNext___1uRqJ,.imagePrev___F6xVQ{@extends .image}.imageDiscourager___3-CUB{background-repeat:no-repeat;background-position:50%;background-size:contain}.navButtons___3kNVF{border:none;position:absolute;top:0;bottom:0;width:20px;height:34px;padding:40px 30px;margin:auto;cursor:pointer;opacity:.7}.navButtons___3kNVF:hover{opacity:1}.navButtons___3kNVF:active{opacity:.7}.navButtonPrev___2vBS8{left:0;background:rgba(0,0,0,.2) url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjM0Ij48cGF0aCBkPSJtIDE5LDMgLTIsLTIgLTE2LDE2IDE2LDE2IDEsLTEgLTE1LC0xNSAxNSwtMTUgeiIgZmlsbD0iI0ZGRiIvPjwvc3ZnPg==") no-repeat 50%}.navButtonNext___30R2i{right:0;background:rgba(0,0,0,.2) url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjM0Ij48cGF0aCBkPSJtIDEsMyAyLC0yIDE2LDE2IC0xNiwxNiAtMSwtMSAxNSwtMTUgLTE1LC0xNSB6IiBmaWxsPSIjRkZGIi8+PC9zdmc+") no-repeat 50%}.downloadBlocker___3rU9-{position:absolute;top:0;left:0;right:0;bottom:0;background-image:url("data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");background-size:cover}.caption___3vDh_,.toolbar___1xYly{background-color:rgba(0,0,0,.5);position:absolute;left:0;right:0;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between}.caption___3vDh_{bottom:0;max-height:150px;overflow:auto}.captionContent___30kw2{padding:10px 20px;color:#fff}.toolbar___1xYly{top:0;height:50px}.toolbarSide___3FYWk{height:50px;margin:0}.toolbarSideNoFlex___KxqgW{height:auto;line-height:50px;max-width:48%;position:absolute;top:0;bottom:0}.toolbarLeftSide___8beAg{padding-left:20px;padding-right:0;-webkit-box-flex:0;-ms-flex:0 1 auto;flex:0 1 auto;overflow:hidden;text-overflow:ellipsis}.toolbarLeftSideNoFlex___3O3cZ{left:0;overflow:visible}.toolbarRightSide___1Sdfc{padding-left:0;padding-right:20px;-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto}.toolbarRightSideNoFlex___oa0FT{right:0}.toolbarItem___3WbMb{display:inline-block;line-height:50px;padding:0;color:#fff;font-size:120%;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.toolbarItemChild___2U_MP{vertical-align:middle}.builtinButton___1zqo6{width:40px;height:35px;cursor:pointer;border:none;opacity:.7}.builtinButton___1zqo6:hover{opacity:1}.builtinButton___1zqo6:active{outline:none}.builtinButtonDisabled___3uvqe{cursor:default;opacity:.5}.builtinButtonDisabled___3uvqe:hover{opacity:.5}.closeButton___3BdAF{background:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIj48cGF0aCBkPSJtIDEsMyAxLjI1LC0xLjI1IDcuNSw3LjUgNy41LC03LjUgMS4yNSwxLjI1IC03LjUsNy41IDcuNSw3LjUgLTEuMjUsMS4yNSAtNy41LC03LjUgLTcuNSw3LjUgLTEuMjUsLTEuMjUgNy41LC03LjUgLTcuNSwtNy41IHoiIGZpbGw9IiNGRkYiLz48L3N2Zz4=") no-repeat 50%}.zoomInButton___3xtuX{background:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGcgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+PHBhdGggZD0iTTEgMTlsNi02Ii8+PHBhdGggZD0iTTkgOGg2Ii8+PHBhdGggZD0iTTEyIDV2NiIvPjwvZz48Y2lyY2xlIGN4PSIxMiIgY3k9IjgiIHI9IjciIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+") no-repeat 50%}.zoomOutButton___38PZx{background:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGcgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+PHBhdGggZD0iTTEgMTlsNi02Ii8+PHBhdGggZD0iTTkgOGg2Ii8+PC9nPjxjaXJjbGUgY3g9IjEyIiBjeT0iOCIgcj0iNyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIiLz48L3N2Zz4=") no-repeat 50%}.outerAnimating___2-fZi{-webkit-animation-name:closeWindow___2Hlon;animation-name:closeWindow___2Hlon}@-webkit-keyframes pointFade___2RA5J{0%,19.999%,to{opacity:0}20%{opacity:1}}@keyframes pointFade___2RA5J{0%,19.999%,to{opacity:0}20%{opacity:1}}.loadingCircle___3JNJg{width:60px;height:60px;position:relative}.loadingCirclePoint___3md-S{width:100%;height:100%;position:absolute;left:0;top:0}.loadingCirclePoint___3md-S:before{content:"";display:block;margin:0 auto;width:15%;height:15%;background-color:#fff;border-radius:30%;-webkit-animation:pointFade___2RA5J 1.2s infinite ease-in-out both;animation:pointFade___2RA5J 1.2s infinite ease-in-out both}.loadingCirclePoint___3md-S:first-of-type{-webkit-transform:rotate(0deg);-ms-transform:rotate(0deg);transform:rotate(0deg)}.loadingCirclePoint___3md-S:first-of-type:before,.loadingCirclePoint___3md-S:nth-of-type(7):before{-webkit-animation-delay:-1.2s;animation-delay:-1.2s}.loadingCirclePoint___3md-S:nth-of-type(2){-webkit-transform:rotate(30deg);-ms-transform:rotate(30deg);transform:rotate(30deg)}.loadingCirclePoint___3md-S:nth-of-type(8){-webkit-transform:rotate(210deg);-ms-transform:rotate(210deg);transform:rotate(210deg)}.loadingCirclePoint___3md-S:nth-of-type(2):before,.loadingCirclePoint___3md-S:nth-of-type(8):before{-webkit-animation-delay:-1s;animation-delay:-1s}.loadingCirclePoint___3md-S:nth-of-type(3){-webkit-transform:rotate(60deg);-ms-transform:rotate(60deg);transform:rotate(60deg)}.loadingCirclePoint___3md-S:nth-of-type(9){-webkit-transform:rotate(240deg);-ms-transform:rotate(240deg);transform:rotate(240deg)}.loadingCirclePoint___3md-S:nth-of-type(3):before,.loadingCirclePoint___3md-S:nth-of-type(9):before{-webkit-animation-delay:-.8s;animation-delay:-.8s}.loadingCirclePoint___3md-S:nth-of-type(4){-webkit-transform:rotate(90deg);-ms-transform:rotate(90deg);transform:rotate(90deg)}.loadingCirclePoint___3md-S:nth-of-type(10){-webkit-transform:rotate(270deg);-ms-transform:rotate(270deg);transform:rotate(270deg)}.loadingCirclePoint___3md-S:nth-of-type(4):before,.loadingCirclePoint___3md-S:nth-of-type(10):before{-webkit-animation-delay:-.6s;animation-delay:-.6s}.loadingCirclePoint___3md-S:nth-of-type(5){-webkit-transform:rotate(120deg);-ms-transform:rotate(120deg);transform:rotate(120deg)}.loadingCirclePoint___3md-S:nth-of-type(11){-webkit-transform:rotate(300deg);-ms-transform:rotate(300deg);transform:rotate(300deg)}.loadingCirclePoint___3md-S:nth-of-type(5):before,.loadingCirclePoint___3md-S:nth-of-type(11):before{-webkit-animation-delay:-.4s;animation-delay:-.4s}.loadingCirclePoint___3md-S:nth-of-type(6){-webkit-transform:rotate(150deg);-ms-transform:rotate(150deg);transform:rotate(150deg)}.loadingCirclePoint___3md-S:nth-of-type(12){-webkit-transform:rotate(330deg);-ms-transform:rotate(330deg);transform:rotate(330deg)}.loadingCirclePoint___3md-S:nth-of-type(6):before,.loadingCirclePoint___3md-S:nth-of-type(12):before{-webkit-animation-delay:-.2s;animation-delay:-.2s}.loadingCirclePoint___3md-S:nth-of-type(7){-webkit-transform:rotate(180deg);-ms-transform:rotate(180deg);transform:rotate(180deg)}.loadingCirclePoint___3md-S:nth-of-type(13){-webkit-transform:rotate(1turn);-ms-transform:rotate(1turn);transform:rotate(1turn)}.loadingCirclePoint___3md-S:nth-of-type(7):before,.loadingCirclePoint___3md-S:nth-of-type(13):before{-webkit-animation-delay:0ms;animation-delay:0ms}.loadingContainer___2vaJ-{position:absolute;top:0;right:0;bottom:0;left:0}.loadingContainer__icon___1wQQz{color:#fff;position:absolute;top:50%;left:50%;-webkit-transform:translateX(-50%) translateY(-50%);-ms-transform:translateX(-50%) translateY(-50%);transform:translateX(-50%) translateY(-50%)}', "" ]), 
+        exports.push([ module.id, '@-webkit-keyframes closeWindow___2Hlon{0%{opacity:1}to{opacity:0}}@keyframes closeWindow___2Hlon{0%{opacity:1}to{opacity:0}}.outer___2lDXy{background-color:rgba(0,0,0,.85);top:0;left:0;right:0;bottom:0;z-index:1000;width:100%;height:100%;-ms-content-zooming:none;-ms-user-select:none;-ms-touch-select:none;-ms-touch-action:none;touch-action:none}.outerClosing___1EQGK{opacity:0}.image___2FLq2,.inner___1rfRQ{position:absolute;top:0;left:0;right:0;bottom:0}.image___2FLq2{margin:auto;-ms-content-zooming:none;-ms-user-select:none;-ms-touch-select:none;-ms-touch-action:none;touch-action:none}.imageNext___1uRqJ,.imagePrev___F6xVQ{@extends .image}.imageDiscourager___3-CUB{background-repeat:no-repeat;background-position:50%;background-size:contain}.navButtons___3kNVF{border:none;position:absolute;top:0;bottom:0;width:20px;height:34px;padding:40px 30px;margin:auto;cursor:pointer;opacity:.7}.navButtons___3kNVF:hover{opacity:1}.navButtons___3kNVF:active{opacity:.7}.navButtonPrev___2vBS8{left:0;background:rgba(0,0,0,.2) url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjM0Ij48cGF0aCBkPSJtIDE5LDMgLTIsLTIgLTE2LDE2IDE2LDE2IDEsLTEgLTE1LC0xNSAxNSwtMTUgeiIgZmlsbD0iI0ZGRiIvPjwvc3ZnPg==") no-repeat 50%}.navButtonNext___30R2i{right:0;background:rgba(0,0,0,.2) url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjM0Ij48cGF0aCBkPSJtIDEsMyAyLC0yIDE2LDE2IC0xNiwxNiAtMSwtMSAxNSwtMTUgLTE1LC0xNSB6IiBmaWxsPSIjRkZGIi8+PC9zdmc+") no-repeat 50%}.downloadBlocker___3rU9-{position:absolute;top:0;left:0;right:0;bottom:0;background-image:url("data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");background-size:cover}.caption___3vDh_,.toolbar___1xYly{background-color:rgba(0,0,0,.5);position:absolute;left:0;right:0;display:-webkit-box;display:-ms-flexbox;display:flex;-webkit-box-pack:justify;-ms-flex-pack:justify;justify-content:space-between}.caption___3vDh_{bottom:0;max-height:150px;overflow:auto}.captionContent___30kw2{padding:10px 20px;color:#fff}.toolbar___1xYly{top:0;height:50px}.toolbarSide___3FYWk{height:50px;margin:0}.toolbarSideNoFlex___KxqgW{height:auto;line-height:50px;max-width:48%;position:absolute;top:0;bottom:0}.toolbarLeftSide___8beAg{padding-left:20px;padding-right:0;-webkit-box-flex:0;-ms-flex:0 1 auto;flex:0 1 auto;overflow:hidden;text-overflow:ellipsis}.toolbarLeftSideNoFlex___3O3cZ{left:0;overflow:visible}.toolbarRightSide___1Sdfc{padding-left:0;padding-right:20px;-webkit-box-flex:0;-ms-flex:0 0 auto;flex:0 0 auto}.toolbarRightSideNoFlex___oa0FT{right:0}.toolbarItem___3WbMb{display:inline-block;line-height:50px;padding:0;color:#fff;font-size:120%;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.toolbarItemChild___2U_MP{vertical-align:middle}.builtinButton___1zqo6{width:40px;height:35px;cursor:pointer;border:none;opacity:.7}.builtinButton___1zqo6:hover{opacity:1}.builtinButton___1zqo6:active{outline:none}.builtinButtonDisabled___3uvqe{cursor:default;opacity:.5}.builtinButtonDisabled___3uvqe:hover{opacity:.5}.closeButton___3BdAF{background:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIj48cGF0aCBkPSJtIDEsMyAxLjI1LC0xLjI1IDcuNSw3LjUgNy41LC03LjUgMS4yNSwxLjI1IC03LjUsNy41IDcuNSw3LjUgLTEuMjUsMS4yNSAtNy41LC03LjUgLTcuNSw3LjUgLTEuMjUsLTEuMjUgNy41LC03LjUgLTcuNSwtNy41IHoiIGZpbGw9IiNGRkYiLz48L3N2Zz4=") no-repeat 50%}.zoomInButton___3xtuX{background:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGcgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+PHBhdGggZD0iTTEgMTlsNi02Ii8+PHBhdGggZD0iTTkgOGg2Ii8+PHBhdGggZD0iTTEyIDV2NiIvPjwvZz48Y2lyY2xlIGN4PSIxMiIgY3k9IjgiIHI9IjciIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIyIi8+PC9zdmc+") no-repeat 50%}.zoomOutButton___38PZx{background:url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGcgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+PHBhdGggZD0iTTEgMTlsNi02Ii8+PHBhdGggZD0iTTkgOGg2Ii8+PC9nPjxjaXJjbGUgY3g9IjEyIiBjeT0iOCIgcj0iNyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmIiBzdHJva2Utd2lkdGg9IjIiLz48L3N2Zz4=") no-repeat 50%}.outerAnimating___2-fZi{-webkit-animation-name:closeWindow___2Hlon;animation-name:closeWindow___2Hlon}@-webkit-keyframes pointFade___2RA5J{0%,19.999%,to{opacity:0}20%{opacity:1}}@keyframes pointFade___2RA5J{0%,19.999%,to{opacity:0}20%{opacity:1}}.loadingCircle___3JNJg{width:60px;height:60px;position:relative}.loadingCirclePoint___3md-S{width:100%;height:100%;position:absolute;left:0;top:0}.loadingCirclePoint___3md-S:before{content:"";display:block;margin:0 auto;width:15%;height:15%;background-color:#fff;border-radius:30%;-webkit-animation:pointFade___2RA5J 1.2s infinite ease-in-out both;animation:pointFade___2RA5J 1.2s infinite ease-in-out both}.loadingCirclePoint___3md-S:first-of-type{-webkit-transform:rotate(0deg);-ms-transform:rotate(0deg);transform:rotate(0deg)}.loadingCirclePoint___3md-S:first-of-type:before,.loadingCirclePoint___3md-S:nth-of-type(7):before{-webkit-animation-delay:-1.2s;animation-delay:-1.2s}.loadingCirclePoint___3md-S:nth-of-type(2){-webkit-transform:rotate(30deg);-ms-transform:rotate(30deg);transform:rotate(30deg)}.loadingCirclePoint___3md-S:nth-of-type(8){-webkit-transform:rotate(210deg);-ms-transform:rotate(210deg);transform:rotate(210deg)}.loadingCirclePoint___3md-S:nth-of-type(2):before,.loadingCirclePoint___3md-S:nth-of-type(8):before{-webkit-animation-delay:-1s;animation-delay:-1s}.loadingCirclePoint___3md-S:nth-of-type(3){-webkit-transform:rotate(60deg);-ms-transform:rotate(60deg);transform:rotate(60deg)}.loadingCirclePoint___3md-S:nth-of-type(9){-webkit-transform:rotate(240deg);-ms-transform:rotate(240deg);transform:rotate(240deg)}.loadingCirclePoint___3md-S:nth-of-type(3):before,.loadingCirclePoint___3md-S:nth-of-type(9):before{-webkit-animation-delay:-.8s;animation-delay:-.8s}.loadingCirclePoint___3md-S:nth-of-type(4){-webkit-transform:rotate(90deg);-ms-transform:rotate(90deg);transform:rotate(90deg)}.loadingCirclePoint___3md-S:nth-of-type(10){-webkit-transform:rotate(270deg);-ms-transform:rotate(270deg);transform:rotate(270deg)}.loadingCirclePoint___3md-S:nth-of-type(4):before,.loadingCirclePoint___3md-S:nth-of-type(10):before{-webkit-animation-delay:-.6s;animation-delay:-.6s}.loadingCirclePoint___3md-S:nth-of-type(5){-webkit-transform:rotate(120deg);-ms-transform:rotate(120deg);transform:rotate(120deg)}.loadingCirclePoint___3md-S:nth-of-type(11){-webkit-transform:rotate(300deg);-ms-transform:rotate(300deg);transform:rotate(300deg)}.loadingCirclePoint___3md-S:nth-of-type(5):before,.loadingCirclePoint___3md-S:nth-of-type(11):before{-webkit-animation-delay:-.4s;animation-delay:-.4s}.loadingCirclePoint___3md-S:nth-of-type(6){-webkit-transform:rotate(150deg);-ms-transform:rotate(150deg);transform:rotate(150deg)}.loadingCirclePoint___3md-S:nth-of-type(12){-webkit-transform:rotate(330deg);-ms-transform:rotate(330deg);transform:rotate(330deg)}.loadingCirclePoint___3md-S:nth-of-type(6):before,.loadingCirclePoint___3md-S:nth-of-type(12):before{-webkit-animation-delay:-.2s;animation-delay:-.2s}.loadingCirclePoint___3md-S:nth-of-type(7){-webkit-transform:rotate(180deg);-ms-transform:rotate(180deg);transform:rotate(180deg)}.loadingCirclePoint___3md-S:nth-of-type(13){-webkit-transform:rotate(1turn);-ms-transform:rotate(1turn);transform:rotate(1turn)}.loadingCirclePoint___3md-S:nth-of-type(7):before,.loadingCirclePoint___3md-S:nth-of-type(13):before{-webkit-animation-delay:0ms;animation-delay:0ms}.loadingContainer___2vaJ-{position:absolute;top:0;right:0;bottom:0;left:0}.loadingContainer__icon___1wQQz{color:#fff;position:absolute;top:50%;left:50%;-webkit-transform:translateX(-50%) translateY(-50%);-ms-transform:translateX(-50%) translateY(-50%);transform:translateX(-50%) translateY(-50%)}', "" ]), 
         // exports
         exports.locals = {
             outer: "outer___2lDXy",
@@ -1430,165 +1440,91 @@
     }, /* 6 */
     /***/
     function(module, exports, __webpack_require__) {
-        function addStylesToDom(styles, options) {
-            for (var i = 0; i < styles.length; i++) {
-                var item = styles[i], domStyle = stylesInDom[item.id];
-                if (domStyle) {
-                    domStyle.refs++;
-                    for (var j = 0; j < domStyle.parts.length; j++) domStyle.parts[j](item.parts[j]);
-                    for (;j < item.parts.length; j++) domStyle.parts.push(addStyle(item.parts[j], options));
-                } else {
-                    for (var parts = [], j = 0; j < item.parts.length; j++) parts.push(addStyle(item.parts[j], options));
-                    stylesInDom[item.id] = {
-                        id: item.id,
-                        refs: 1,
-                        parts: parts
-                    };
-                }
-            }
-        }
-        function listToStyles(list) {
-            for (var styles = [], newStyles = {}, i = 0; i < list.length; i++) {
-                var item = list[i], id = item[0], css = item[1], media = item[2], sourceMap = item[3], part = {
-                    css: css,
-                    media: media,
-                    sourceMap: sourceMap
-                };
-                newStyles[id] ? newStyles[id].parts.push(part) : styles.push(newStyles[id] = {
-                    id: id,
-                    parts: [ part ]
-                });
-            }
-            return styles;
-        }
-        function insertStyleElement(options, styleElement) {
-            var head = getHeadElement(), lastStyleElementInsertedAtTop = styleElementsInsertedAtTop[styleElementsInsertedAtTop.length - 1];
-            if ("top" === options.insertAt) lastStyleElementInsertedAtTop ? lastStyleElementInsertedAtTop.nextSibling ? head.insertBefore(styleElement, lastStyleElementInsertedAtTop.nextSibling) : head.appendChild(styleElement) : head.insertBefore(styleElement, head.firstChild), 
-            styleElementsInsertedAtTop.push(styleElement); else {
-                if ("bottom" !== options.insertAt) throw new Error("Invalid value for parameter 'insertAt'. Must be 'top' or 'bottom'.");
-                head.appendChild(styleElement);
-            }
-        }
-        function removeStyleElement(styleElement) {
-            styleElement.parentNode.removeChild(styleElement);
-            var idx = styleElementsInsertedAtTop.indexOf(styleElement);
-            idx >= 0 && styleElementsInsertedAtTop.splice(idx, 1);
-        }
-        function createStyleElement(options) {
-            var styleElement = document.createElement("style");
-            return styleElement.type = "text/css", insertStyleElement(options, styleElement), 
-            styleElement;
-        }
-        function createLinkElement(options) {
-            var linkElement = document.createElement("link");
-            return linkElement.rel = "stylesheet", insertStyleElement(options, linkElement), 
-            linkElement;
-        }
-        function addStyle(obj, options) {
-            var styleElement, update, remove;
-            if (options.singleton) {
-                var styleIndex = singletonCounter++;
-                styleElement = singletonElement || (singletonElement = createStyleElement(options)), 
-                update = applyToSingletonTag.bind(null, styleElement, styleIndex, !1), remove = applyToSingletonTag.bind(null, styleElement, styleIndex, !0);
-            } else obj.sourceMap && "function" == typeof URL && "function" == typeof URL.createObjectURL && "function" == typeof URL.revokeObjectURL && "function" == typeof Blob && "function" == typeof btoa ? (styleElement = createLinkElement(options), 
-            update = updateLink.bind(null, styleElement), remove = function() {
-                removeStyleElement(styleElement), styleElement.href && URL.revokeObjectURL(styleElement.href);
-            }) : (styleElement = createStyleElement(options), update = applyToTag.bind(null, styleElement), 
-            remove = function() {
-                removeStyleElement(styleElement);
-            });
-            return update(obj), function(newObj) {
-                if (newObj) {
-                    if (newObj.css === obj.css && newObj.media === obj.media && newObj.sourceMap === obj.sourceMap) return;
-                    update(obj = newObj);
-                } else remove();
-            };
-        }
-        function applyToSingletonTag(styleElement, index, remove, obj) {
-            var css = remove ? "" : obj.css;
-            if (styleElement.styleSheet) styleElement.styleSheet.cssText = replaceText(index, css); else {
-                var cssNode = document.createTextNode(css), childNodes = styleElement.childNodes;
-                childNodes[index] && styleElement.removeChild(childNodes[index]), childNodes.length ? styleElement.insertBefore(cssNode, childNodes[index]) : styleElement.appendChild(cssNode);
-            }
-        }
-        function applyToTag(styleElement, obj) {
-            var css = obj.css, media = obj.media;
-            if (media && styleElement.setAttribute("media", media), styleElement.styleSheet) styleElement.styleSheet.cssText = css; else {
-                for (;styleElement.firstChild; ) styleElement.removeChild(styleElement.firstChild);
-                styleElement.appendChild(document.createTextNode(css));
-            }
-        }
-        function updateLink(linkElement, obj) {
-            var css = obj.css, sourceMap = obj.sourceMap;
-            sourceMap && (// http://stackoverflow.com/a/26603875
-            css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */");
-            var blob = new Blob([ css ], {
-                type: "text/css"
-            }), oldSrc = linkElement.href;
-            linkElement.href = URL.createObjectURL(blob), oldSrc && URL.revokeObjectURL(oldSrc);
-        }
-        /*
-		MIT License http://www.opensource.org/licenses/mit-license.php
-		Author Tobias Koppers @sokra
-	*/
-        var stylesInDom = {}, memoize = function(fn) {
-            var memo;
-            return function() {
-                return "undefined" == typeof memo && (memo = fn.apply(this, arguments)), memo;
-            };
-        }, isOldIE = memoize(function() {
-            return /msie [6-9]\b/.test(window.navigator.userAgent.toLowerCase());
-        }), getHeadElement = memoize(function() {
-            return document.head || document.getElementsByTagName("head")[0];
-        }), singletonElement = null, singletonCounter = 0, styleElementsInsertedAtTop = [];
-        module.exports = function(list, options) {
-            options = options || {}, // Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
-            // tags it will allow on a page
-            "undefined" == typeof options.singleton && (options.singleton = isOldIE()), // By default, add <style> tags to the bottom of <head>.
-            "undefined" == typeof options.insertAt && (options.insertAt = "bottom");
-            var styles = listToStyles(list);
-            return addStylesToDom(styles, options), function(newList) {
-                for (var mayRemove = [], i = 0; i < styles.length; i++) {
-                    var item = styles[i], domStyle = stylesInDom[item.id];
-                    domStyle.refs--, mayRemove.push(domStyle);
-                }
-                if (newList) {
-                    var newStyles = listToStyles(newList);
-                    addStylesToDom(newStyles, options);
-                }
-                for (var i = 0; i < mayRemove.length; i++) {
-                    var domStyle = mayRemove[i];
-                    if (0 === domStyle.refs) {
-                        for (var j = 0; j < domStyle.parts.length; j++) domStyle.parts[j]();
-                        delete stylesInDom[domStyle.id];
-                    }
-                }
-            };
+        var content = __webpack_require__(4), insertCss = __webpack_require__(7);
+        "string" == typeof content && (content = [ [ module.id, content, "" ] ]), module.exports = content.locals || {}, 
+        module.exports._getContent = function() {
+            return content;
+        }, module.exports._getCss = function() {
+            return content.toString();
+        }, module.exports._insertCss = function(options) {
+            return insertCss(content, options);
         };
-        var replaceText = function() {
-            var textStore = [];
-            return function(index, replacement) {
-                return textStore[index] = replacement, textStore.filter(Boolean).join("\n");
-            };
-        }();
     }, /* 7 */
     /***/
     function(module, exports, __webpack_require__) {
-        // style-loader: Adds some css to the DOM by adding a <style> tag
-        // load the styles
-        var content = __webpack_require__(4);
-        "string" == typeof content && (content = [ [ module.id, content, "" ] ]);
-        // add the styles to the DOM
-        __webpack_require__(6)(content, {});
-        content.locals && (module.exports = content.locals);
+        "use strict";
+        function _interopRequireDefault(obj) {
+            return obj && obj.__esModule ? obj : {
+                default: obj
+            };
+        }
+        // Base64 encoding and decoding - The "Unicode Problem"
+        // https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#The_Unicode_Problem
+        function b64EncodeUnicode(str) {
+            return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function(match, p1) {
+                return String.fromCharCode("0x" + p1);
+            }));
+        }
+        /**
+	 * Remove style/link elements for specified node IDs
+	 * if they are no longer referenced by UI components.
+	 */
+        function removeCss(ids) {
+            ids.forEach(function(id) {
+                if (--inserted[id] <= 0) {
+                    var elem = document.getElementById(prefix + id);
+                    elem && elem.parentNode.removeChild(elem);
+                }
+            });
+        }
+        /**
+	 * Example:
+	 *   // Insert CSS styles object generated by `css-loader` into DOM
+	 *   var removeCss = insertCss([[1, 'body { color: red; }']]);
+	 *
+	 *   // Remove it from the DOM
+	 *   removeCss();
+	 */
+        function insertCss(styles) {
+            for (var _ref = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {}, _ref$replace = _ref.replace, replace = void 0 !== _ref$replace && _ref$replace, _ref$prepend = _ref.prepend, prepend = void 0 !== _ref$prepend && _ref$prepend, ids = [], i = 0; i < styles.length; i++) {
+                var _styles$i = (0, _slicedToArray3.default)(styles[i], 4), moduleId = _styles$i[0], css = _styles$i[1], media = _styles$i[2], sourceMap = _styles$i[3], id = moduleId + "-" + i;
+                if (ids.push(id), !inserted[id] || replace) {
+                    inserted[id] = 1;
+                    var elem = document.getElementById(prefix + id), create = !1;
+                    elem || (create = !0, elem = document.createElement("style"), elem.setAttribute("type", "text/css"), 
+                    elem.id = prefix + id, media && elem.setAttribute("media", media));
+                    var cssText = css;
+                    sourceMap && "function" == typeof btoa && (// skip IE9 and below, see http://caniuse.com/atob-btoa
+                    cssText += "\n/*# sourceMappingURL=data:application/json;base64," + b64EncodeUnicode((0, 
+                    _stringify2.default)(sourceMap)) + "*/", cssText += "\n/*# sourceURL=" + sourceMap.file + "?" + id + "*/"), 
+                    "textContent" in elem ? elem.textContent = cssText : elem.styleSheet.cssText = cssText, 
+                    create && (prepend ? document.head.insertBefore(elem, document.head.childNodes[0]) : document.head.appendChild(elem));
+                } else inserted[id]++;
+            }
+            return removeCss.bind(null, ids);
+        }
+        var _stringify = __webpack_require__(8), _stringify2 = _interopRequireDefault(_stringify), _slicedToArray2 = __webpack_require__(9), _slicedToArray3 = _interopRequireDefault(_slicedToArray2), prefix = "s", inserted = {};
+        module.exports = insertCss;
     }, /* 8 */
     /***/
     function(module, exports) {
-        module.exports = __WEBPACK_EXTERNAL_MODULE_8__;
+        module.exports = require("babel-runtime/core-js/json/stringify");
     }, /* 9 */
     /***/
     function(module, exports) {
-        module.exports = __WEBPACK_EXTERNAL_MODULE_9__;
+        module.exports = require("babel-runtime/helpers/slicedToArray");
+    }, /* 10 */
+    /***/
+    function(module, exports) {
+        module.exports = require("prop-types");
+    }, /* 11 */
+    /***/
+    function(module, exports) {
+        module.exports = require("react");
+    }, /* 12 */
+    /***/
+    function(module, exports) {
+        module.exports = require("react-modal");
     } ]);
 });
 //# sourceMappingURL=react-image-lightbox.js.map
