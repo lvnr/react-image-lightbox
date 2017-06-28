@@ -67,6 +67,7 @@ class ReactImageLightbox extends Component {
             //-----------------------------
             // Zoom level of image
             zoomLevel: MIN_ZOOM_LEVEL,
+            minZoomLevel: 0,
 
             //-----------------------------
             // Image position settings
@@ -265,7 +266,6 @@ class ReactImageLightbox extends Component {
         // Constrain zoom level to the set bounds
         const nextZoomLevel = Math.max(MIN_ZOOM_LEVEL, Math.min(MAX_ZOOM_LEVEL, zoomLevel));
 
-
         // Ignore requests that don't change the zoom level
         if (nextZoomLevel === this.state.zoomLevel) {
             return;
@@ -392,6 +392,10 @@ class ReactImageLightbox extends Component {
 
     // Get sizing for when an image is larger than the window
     getFitSizes(width, height, stretch) {
+        return {
+           width: width,
+           height: height,
+        }
         const boxSize = this.getLightboxRect();
         let maxHeight = boxSize.height - (this.props.imagePadding * 2);
         let maxWidth  = boxSize.width - (this.props.imagePadding * 2);
@@ -484,7 +488,8 @@ class ReactImageLightbox extends Component {
      * Get sizing when the image is scaled
      */
     getZoomMultiplier(zoomLevel = this.state.zoomLevel) {
-        return ZOOM_RATIO ** zoomLevel;
+        const { minZoomLevel } = this.state;
+        return ZOOM_RATIO ** zoomLevel - (1 - minZoomLevel);
     }
 
     /**
@@ -1123,7 +1128,13 @@ class ReactImageLightbox extends Component {
             this.forceUpdate();
 
             // Zoom to initial level
-            this.changeZoom(this.props.initialZoomLevel || MIN_ZOOM_LEVEL);
+            const bestImageInfo = this.getBestImageForType('mainSrc')
+            const boxRect = this.getLightboxRect();
+            const widthRatio = boxRect.width / bestImageInfo.width;
+            const heightRatio = boxRect.height / bestImageInfo.height;
+            const zoomRatio = Math.min(widthRatio, heightRatio);
+            this.setState({ minZoomLevel: zoomRatio });
+            // this.changeZoom(this.props.initialZoomLevel || initialZoom);
         };
 
         // Load the images
@@ -1245,6 +1256,7 @@ class ReactImageLightbox extends Component {
         } = this.props;
         const {
             zoomLevel,
+            minZoomLevel,
             offsetX,
             offsetY,
             isClosing,
@@ -1269,15 +1281,10 @@ class ReactImageLightbox extends Component {
 
         // Images to be displayed
         const images = [];
-        const addImage = (srcType, imageClass, baseStyle = {}) => {
+        const addImage = (srcType, imageClass, transforms = {}) => {
             // Ignore types that have no source defined for their full size image
             if (!this.props[srcType]) {
                 return;
-            }
-
-            const imageStyle = { ...baseStyle, ...transitionStyle };
-            if (zoomLevel > MIN_ZOOM_LEVEL) {
-                imageStyle.cursor = 'move';
             }
 
             const bestImageInfo = this.getBestImageForType(srcType);
@@ -1324,8 +1331,17 @@ class ReactImageLightbox extends Component {
                 return;
             }
 
-            imageStyle.width  = bestImageInfo.width;
-            imageStyle.height = bestImageInfo.height;
+            const boxRect = this.getLightboxRect();
+            const widthRatio = boxRect.width / bestImageInfo.width;
+            const heightRatio = boxRect.height / bestImageInfo.height;
+            const zoomRatio = Math.min(widthRatio, heightRatio);
+            const zoom = !transforms.zoom ? zoomRatio : Math.max(zoomRatio, transforms.zoom);
+            const portrait = bestImageInfo.height > bestImageInfo.width;
+            const left = portrait ? 0 : -1 * (bestImageInfo.width - boxRect.width) / 2;
+            const top = !portrait ? 0 : -1 * (bestImageInfo.height - boxRect.height) / 2;
+            const transform = ReactImageLightbox.getTransform({ ...transforms, zoom });
+
+            const imageStyle = { ...transitionStyle, ...transform, left, top };
 
             const imageSrc = bestImageInfo.src;
             if (discourageDownloads) {
@@ -1363,23 +1379,23 @@ class ReactImageLightbox extends Component {
         addImage(
             'nextSrc',
             `ril-image-next ${styles.imageNext}`,
-            ReactImageLightbox.getTransform({ x: boxSize.width })
+            { x: boxSize.width }
         );
         // Main Image
         addImage(
             'mainSrc',
             'ril-image-current',
-            ReactImageLightbox.getTransform({
+            {
                 x: -1 * offsetX,
                 y: -1 * offsetY,
-                zoom: zoomMultiplier,
-            })
+                zoom: zoomMultiplier
+            }
         );
         // Previous Image (displayed on the left)
         addImage(
             'prevSrc',
             `ril-image-prev ${styles.imagePrev}`,
-            ReactImageLightbox.getTransform({ x: -1 * boxSize.width })
+            { x: -1 * boxSize.width }
         );
 
         const noop = () => {};
