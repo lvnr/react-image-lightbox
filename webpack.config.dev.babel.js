@@ -42,7 +42,7 @@ module.exports = {
             {
                 test: /\.scss$/,
                 loaders: [
-                    'style-loader',
+                    'isomorphic-style-loader?insertAt=top',
                     'css-loader?modules&-autoprefixer&importLoaders=1&localIdentName=[local]___[hash:base64:5]',
                     'postcss-loader',
                     'sass-loader',
@@ -60,7 +60,7 @@ module.exports = {
     },
     devServer: {
         contentBase: 'build',
-        port: 3001,
+        port: process.env.PORT || 3001,
         stats: {
             chunks: false,
             hash: false,

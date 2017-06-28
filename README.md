@@ -72,14 +72,7 @@ export default class LightboxExample extends Component {
     }
 }
 
-
 ```
-
-## Deprecation Notice
-
-All unprefixed classes (listed below) will be removed in v4.0.0. Use their `ril-` prefixed alternatives instead.
-`close`, `closing`, `download-blocker`, `image-current`, `image-next`, `image-prev`, `inner`, `next-button`, `not-loaded`, `outer`, `prev-button`, `toolbar`, `toolbar-left`, `toolbar-right`, `zoom-in`, `zoom-out`
-
 ## Options
 
 Property            | Type   | Default        | Required | Description
@@ -94,6 +87,7 @@ onCloseRequest      | func   |                |    yes   | Close window event. S
 onMovePrevRequest   | func   | empty function |          | Move to previous image event. Should change the parent state such that `props.prevSrc` becomes `props.mainSrc`, `props.mainSrc` becomes `props.nextSrc`, etc.
 onMoveNextRequest   | func   | empty function |          | Move to next image event. Should change the parent state such that `props.nextSrc` becomes `props.mainSrc`, `props.mainSrc` becomes `props.prevSrc`, etc.
 onImageLoadError    | func   | empty function |          | Called when an image fails to load.<div>`(imageSrc: string, srcType: string, errorEvent: object): void`</div>
+onAfterOpen         | func   | empty function |          | Called after the modal has rendered.
 discourageDownloads | bool   | `false`        |          | Enable download discouragement (prevents [right-click -> Save Image As...])
 animationDisabled   | bool   | `false`        |          | Disable all animation
 animationOnKeyInput | bool   | `false`        |          | Disable animation on actions performed with keyboard shortcuts
@@ -116,7 +110,6 @@ enableZoom          | bool   | `true`         |          | Set to false to disab
 | Firefox  | Yes                                 |
 | Safari   | Yes                                 |
 | IE >= 10 | Yes                                 |
-| IE 9     | Everything works, but no animations |
 
 ## Contributing
 
